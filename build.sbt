@@ -1,0 +1,40 @@
+name := "sourcing-service"
+scalaVersion := "2.12.8"
+
+lazy val akkaVersion = "2.5.23"
+lazy val discoveryVersion = "1.0.1"
+lazy val akkaHttpVersion = "10.1.8"
+lazy val alpnVersion = "2.0.9"
+
+lazy val root = (project in file("."))
+  .aggregate(peakworkGrpcClient, peakworkGrpcService)
+
+// Http front end that calls out to a gRPC back end
+lazy val peakworkGrpcClient = (project in file("peakwork-grpc-client"))
+  .enablePlugins(AkkaGrpcPlugin, DockerPlugin, JavaAppPackaging, JavaAgent)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+      "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
+      "com.typesafe.akka" %% "akka-protobuf" % akkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+
+      "com.typesafe.akka" %% "akka-parsing" % akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion,
+
+    ),
+    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % alpnVersion % "runtime",
+//    dockerExposedPorts := Seq(8080),
+  )
+
+lazy val peakworkGrpcService = (project in file("peakwork-grpc-service"))
+  .enablePlugins(AkkaGrpcPlugin, DockerPlugin, JavaAppPackaging, JavaAgent)
+  .settings(
+    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % alpnVersion % "runtime",
+//    dockerExposedPorts := Seq(8080),
+  )
+
+
